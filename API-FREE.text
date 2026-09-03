@@ -1,0 +1,127 @@
+WeatherAPI.com — Free Tier Reference
+=====================================
+
+Limits: 1,000,000 calls/month · forecast capped at 3 days (no 7/14-day) · no historical data
+
+Endpoints available on free:
+- Current weather        /current.json
+- 3-day forecast         /forecast.json?days=3   (includes hourly + astro per day)
+- Search/Autocomplete    /search.json
+- Astronomy              /astronomy.json         (also embedded in forecast.json per day)
+- Time zone              /timezone.json
+- IP Lookup              /ip.json
+- Weather alerts         /forecast.json?alerts=yes
+- Air quality            &aqi=yes                (add to current.json or forecast.json)
+- Weather icons & numeric condition codes (hosted PNGs)
+
+
+1) CURRENT WEATHER — /current.json
+-----------------------------------
+const city      = data.location.name;             // "Lyon"
+const country   = data.location.country;           // "France"
+const localtime = data.location.localtime;         // "2026-08-12 14:32"
+const temp      = data.current.temp_c;              // 27.1
+const feels     = data.current.feelslike_c;         // 27.9
+const humidity  = data.current.humidity;            // 39
+const wind      = data.current.wind_kph;            // 18.7
+const condition = data.current.condition.text;      // "Patchy rain nearby"
+const icon      = data.current.condition.icon;      // "//cdn.weatherapi.com/.../113.png"
+const code      = data.current.condition.code;      // 1000, 1003, 1183, ... numeric condition code
+
+NOTE: chance_of_rain is NOT part of current.json. Rain/snow chance only exists
+per-day or per-hour under forecast.json (see below).
+
+
+2) 3-DAY FORECAST + HOURLY — /forecast.json?days=3
+----------------------------------------------------
+forecast.forecastday[0]  -> today
+forecast.forecastday[1]  -> tomorrow
+forecast.forecastday[2]  -> day after tomorrow
+(free tier stops at 3 — days=7 will be rejected or clamped)
+
+Each forecastday has:
+  .date                          // "2026-08-13"
+  .day.maxtemp_c / .mintemp_c    // daily high/low
+  .day.condition.text / .icon / .code
+  .day.daily_chance_of_rain      // %
+  .day.daily_chance_of_snow      // %
+  .astro.sunrise / .astro.sunset // same fields as astronomy.json, see below
+  .hour[0..23]                   // 24 hourly entries for that day
+
+Each hour object (same shape as `current`, plus):
+  .time              // "2026-08-13 15:00"
+  .temp_c
+  .condition.text / .icon / .code
+  .chance_of_rain    // %
+  .chance_of_snow    // %
+  .will_it_rain      // 0 or 1
+  .will_it_snow      // 0 or 1
+
+Getting "next hour / +2h / +3h" from now:
+  const now = new Date();
+  const currentHour = now.getHours();
+  const todayHours = data.forecast.forecastday[0].hour;
+  const tomorrowHours = data.forecast.forecastday[1].hour; // needed if crossing midnight
+
+  function getHourOffset(offset) {
+    const i = currentHour + offset;
+    return i < 24 ? todayHours[i] : tomorrowHours[i - 24];
+  }
+  // getHourOffset(1) -> next hour, getHourOffset(2) -> +2h, etc.
+  // request days=2+ so forecastday[1] exists when wrapping past midnight
+
+
+3) SEARCH / AUTOCOMPLETE — /search.json?q=lyo
+------------------------------------------------
+Returns an array of matches:
+  [{ name: "Lyon", region: "Rhone-Alpes", country: "France", lat, lon, id }, ...]
+
+
+4) ASTRONOMY — /astronomy.json  (also under forecastday[i].astro)
+---------------------------------------------------------------------
+data.astronomy.astro.sunrise           // "05:52 AM"  <- 12-hour string w/ AM/PM, not 24h
+data.astronomy.astro.sunset            // "09:47 PM"
+data.astronomy.astro.moonrise          // "08:14 PM"
+data.astronomy.astro.moonset           // "05:03 AM"
+data.astronomy.astro.moon_phase        // "Waxing Gibbous"
+data.astronomy.astro.moon_illumination // 78 (percent, number)
+
+If you're already calling forecast.json, you get astro for free per day —
+no separate astronomy.json call needed unless you want a date outside
+the 3-day forecast window.
+
+
+5) TIME ZONE — /timezone.json
+---------------------------------
+data.location.tz_id       // "Europe/Paris"
+data.location.localtime   // "2026-08-12 14:32"
+
+
+6) IP LOOKUP — /ip.json?q=auto:ip
+--------------------------------------
+Auto-detects the caller's location from IP — useful for "use my location"
+instead of asking the user to search a city first.
+data.ip, data.city, data.region, data.country_name, data.lat, data.lon
+
+
+7) WEATHER ALERTS — /forecast.json?alerts=yes
+--------------------------------------------------
+data.alerts.alert[]  // array, empty if none active for that region
+  .headline / .severity / .desc / .effective / .expires / .areas
+
+
+8) AIR QUALITY — add &aqi=yes to current.json or forecast.json
+--------------------------------------------------------------------
+data.current.air_quality["us-epa-index"]   // 1-6 (1 = Good ... 6 = Hazardous)
+data.current.air_quality["gb-defra-index"] // 1-10 (UK scale)
+data.current.air_quality.pm2_5             // µg/m³
+data.current.air_quality.pm10              // µg/m³
+data.current.air_quality.co / .no2 / .o3 / .so2
+
+
+9) ICONS & CONDITION CODES
+-------------------------------
+Every condition.text has a matching numeric condition.code (e.g. 1000 = Sunny/
+Clear, 1003 = Partly cloudy, 1183 = Light rain, 1273 = Thunder w/ light rain)
+and a hosted icon URL (condition.icon) — useful for mapping conditions to your
+own custom icon set instead of relying on the hosted PNGs.
