@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos Weather</title>
+    <meta name="description" content="Current conditions, hourly and 3-day forecast, sunrise/sunset and moon phase for any city — fast, free, no account needed.">
+    <link rel="canonical" href="https://atmos-weather.vercel.app/">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Atmos Weather">
+    <meta property="og:description" content="Current conditions, hourly and 3-day forecast, sunrise/sunset and moon phase for any city.">
+    <meta property="og:url" content="https://atmos-weather.vercel.app/">
+    <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="weather-clear day">
@@ -59,12 +67,18 @@
             <div class="side-menu-current body-small" id="sideMenuCurrent">—</div>
             <button class="btn btn-primary" id="saveFavoriteBtn">☆ Save this city</button>
             <div class="favorites-list" id="favoritesList"></div>
+            <div style="display: flex; gap: var(--space-3);">
+                <a href="./privacy.html" class="caption" style="color: var(--text-tertiary);">Privacy Policy</a>
+                <a href="./terms.html" class="caption" style="color: var(--text-tertiary);">Terms</a>
+            </div>
         </aside>
 
         <section class="time-card glass-2">
             <div class="time-block">
                 <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+                    <circle cx="12" cy="12" r="9"/>
+                    <line id="clockHourHand" x1="12" y1="12" x2="12" y2="8"/>
+                    <line id="clockMinuteHand" x1="12" y1="12" x2="12" y2="6.5"/>
                 </svg>
                 <div>
                     <div class="time" id="localTime">--:--</div>

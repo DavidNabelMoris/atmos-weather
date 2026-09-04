@@ -8,6 +8,29 @@ import { applyBackgroundPhoto } from "./background.js";
 
 let location = "Lyon";
 let lastData: WeatherResponse | null = null;
+let currentTzId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function updateClock(): void {
+    const now = new Date();
+    qs<HTMLDivElement>("localTime").textContent = new Intl.DateTimeFormat("fr-FR", {
+        timeZone: currentTzId, hour: "2-digit", minute: "2-digit", hour12: false,
+    }).format(now);
+    qs<HTMLDivElement>("localDate").textContent = new Intl.DateTimeFormat("fr-FR", {
+        timeZone: currentTzId, weekday: "long", day: "numeric", month: "long",
+    }).format(now);
+
+    const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: currentTzId, hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(now);
+    // hour12:false can report midnight as "24" in some engines; %24 normalizes that to 0.
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0) % 24;
+    const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+
+    const hourAngle = (hour % 12) * 30 + minute * 0.5;
+    const minuteAngle = minute * 6;
+    qs<SVGLineElement>("clockHourHand").setAttribute("transform", `rotate(${hourAngle} 12 12)`);
+    qs<SVGLineElement>("clockMinuteHand").setAttribute("transform", `rotate(${minuteAngle} 12 12)`);
+}
 
 interface CitySuggestion {
     name: string;
@@ -77,8 +100,17 @@ const CATEGORY_BODY_CLASS: Record<Category, string> = {
     "thunderstorm": "weather-storm",
 };
 
-function qs<T extends HTMLElement>(id: string): T {
-    return document.getElementById(id) as T;
+function qs<T extends Element>(id: string): T {
+    return document.getElementById(id) as unknown as T;
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 function conditionIconHtml(code: number, isDay: boolean): string {
@@ -254,7 +286,8 @@ function renderFavorites(): void {
     favorites.forEach((city) => {
         const row = document.createElement("div");
         row.className = "favorite-row";
-        row.innerHTML = `<span>${city}</span><button class="remove-btn" aria-label="Remove ${city}">✕</button>`;
+        const safeCity = escapeHtml(city);
+        row.innerHTML = `<span>${safeCity}</span><button class="remove-btn" aria-label="Remove ${safeCity}">✕</button>`;
 
         row.addEventListener("click", () => {
             location = city;
@@ -323,18 +356,13 @@ function render(data: WeatherResponse): void {
 
     qs<HTMLSpanElement>("locationText").textContent = `${data.location.name}, ${data.location.country}`.toUpperCase();
 
-    const now = new Date();
-    qs<HTMLDivElement>("localTime").textContent = new Intl.DateTimeFormat("fr-FR", {
-        timeZone: data.location.tz_id, hour: "2-digit", minute: "2-digit", hour12: false,
-    }).format(now);
-    qs<HTMLDivElement>("localDate").textContent = new Intl.DateTimeFormat("fr-FR", {
-        timeZone: data.location.tz_id, weekday: "long", day: "numeric", month: "long",
-    }).format(now);
+    currentTzId = data.location.tz_id;
     qs<HTMLDivElement>("tzId").textContent = data.location.tz_id;
     const offsetPart = new Intl.DateTimeFormat("en", {
         timeZone: data.location.tz_id, timeZoneName: "shortOffset",
-    }).formatToParts(now).find((p) => p.type === "timeZoneName");
+    }).formatToParts(new Date()).find((p) => p.type === "timeZoneName");
     qs<HTMLDivElement>("tzOffset").textContent = offsetPart?.value ?? "";
+    updateClock();
 
     qs<HTMLSpanElement>("temp").textContent = String(Math.round(data.current.temp_c));
     qs<HTMLDivElement>("conditionIcon").innerHTML = conditionIconHtml(code, isDay);
@@ -383,7 +411,7 @@ function render(data: WeatherResponse): void {
 
     const alertBanner = qs<HTMLElement>("alertBanner");
     if (data.alerts?.alert?.length) {
-        alertBanner.innerHTML = `${warningIcon()}<span>${data.alerts.alert[0]!.headline}</span>`;
+        alertBanner.innerHTML = `${warningIcon()}<span>${escapeHtml(data.alerts.alert[0]!.headline)}</span>`;
         alertBanner.classList.add("alert");
     } else {
         alertBanner.innerHTML = "";
@@ -442,7 +470,7 @@ function setupInteractions(): void {
         }
         suggestionsEl.innerHTML = suggestions.map((c, i) => `
             <button type="button" class="suggestion-row${i === activeSuggestionIndex ? " active" : ""}" data-index="${i}">
-                ${c.name}<span class="region"> · ${[c.region, c.country].filter(Boolean).join(", ")}</span>
+                ${escapeHtml(c.name)}<span class="region"> · ${escapeHtml([c.region, c.country].filter(Boolean).join(", "))}</span>
             </button>
         `).join("");
         suggestionsEl.classList.remove("hidden");
@@ -544,6 +572,8 @@ function setupInteractions(): void {
 document.addEventListener("DOMContentLoaded", () => {
     setupInteractions();
     getData();
+    updateClock();
+    setInterval(updateClock, 1000);
 });
 
 

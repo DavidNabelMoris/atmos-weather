@@ -1,0 +1,10 @@
+# Atmos Weather
+
+> A simple weather lookup app: current conditions, hourly and 3-day forecast, sunrise/sunset and moon phase for any searched city.
+
+Atmos Weather has no user accounts and does not track visitors. City searches are proxied server-side to WeatherAPI.com; background photography comes from Pixabay. Favorite cities are stored only in the visitor's own browser.
+
+## Pages
+
+- [Privacy Policy](/frontend/privacy.html): what data is and isn't collected.
+- [Terms of Service](/frontend/terms.html): terms of use.
