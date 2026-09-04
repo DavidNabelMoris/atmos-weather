@@ -68,7 +68,5 @@ const CONDITION_ICON: Record<string, (isDay: boolean) => string> = {
 
 export function conditionIconFor(category: string, isDay: boolean): string {
     const fn = CONDITION_ICON[category];
-    // console.log("test");
-    // console.log(fn);
     return fn ? fn(isDay) : cloudIcon();
 }

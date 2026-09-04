@@ -115,7 +115,6 @@ function escapeHtml(value: string): string {
 
 function conditionIconHtml(code: number, isDay: boolean): string {
     const { category } = categorize(code, isDay);
-    console.log(category);
     return conditionIconFor(category, isDay);
 }
 

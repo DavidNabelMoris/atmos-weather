@@ -35,7 +35,6 @@ const WEATHER_QUERIES: Record<string, string> = {
 export function isKnownBackgroundCategory(category: string): boolean {
     return category in WEATHER_QUERIES;
 }
-// console.log(isKnownBackgroundCategory("Rain_Night"));
 
 interface PixabayHit {
     webformatURL: string;
