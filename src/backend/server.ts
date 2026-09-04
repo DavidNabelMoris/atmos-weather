@@ -1,11 +1,8 @@
 import express, { type Request, type Response } from "express";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { fetchForecast, searchCities, WeatherApiError } from "./weatherApi.js";
 import { fetchBackgroundPhotoUrl } from "./backgroundPhotoApi.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(__dirname, "../../");
+const projectRoot = process.cwd();
 
 const WEATHER_API_KEY = process.env["WEATHER_API_KEY"];
 const PIXABAY_API_KEY = process.env["PIXABAY_API_KEY"];
@@ -80,6 +77,10 @@ app.get("/parallax", (_req: Request, res: Response) => {
     res.redirect("/src/frontend/parallax.html");
 });
 
-app.listen(PORT, () => {
-    console.log(`Weather app running at http://localhost:${PORT}`);
-});
+if (!process.env["VERCEL"]) {
+    app.listen(PORT, () => {
+        console.log(`Weather app running at http://localhost:${PORT}`);
+    });
+}
+
+export default app;

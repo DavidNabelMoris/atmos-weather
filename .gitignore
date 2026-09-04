@@ -3,3 +3,6 @@ dist/
 .env
 .mcp.json
 .claude/
+
+.vercel
+.env*

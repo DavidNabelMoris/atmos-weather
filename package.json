@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/prepare-static.mjs",
     "serve": "node --env-file=.env dist/backend/server.js",
     "start": "npm run build && npm run serve",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,7 +18,6 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "framer-motion": "^12.42.2"
+    "express": "^5.1.0"
   }
 }
