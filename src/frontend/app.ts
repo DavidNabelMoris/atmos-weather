@@ -124,41 +124,62 @@ function applyBackground(code: number, isDay: boolean): void {
 }
 
 function humiditySub(h: number): string {
-    if (h < 30) return "Dry";
-    if (h <= 60) return "Comfortable";
-    return "Humid";
+    if (h < 30) return "Sec";
+    if (h <= 60) return "Confortable";
+    return "Humide";
 }
 
 function uvSub(uv: number): string {
-    if (uv < 3) return "Low";
-    if (uv < 6) return "Moderate";
-    if (uv < 8) return "High";
-    if (uv < 11) return "Very High";
-    return "Extreme";
+    if (uv < 3) return "Faible";
+    if (uv < 6) return "Modéré";
+    if (uv < 8) return "Élevé";
+    if (uv < 11) return "Très élevé";
+    return "Extrême";
 }
 
 function visSub(vis: number): string {
-    if (vis >= 10) return "Clear";
-    if (vis >= 5) return "Good";
-    if (vis >= 2) return "Moderate";
-    return "Poor";
+    if (vis >= 10) return "Dégagée";
+    if (vis >= 5) return "Bonne";
+    if (vis >= 2) return "Moyenne";
+    return "Faible";
 }
 
 function aqiLabel(index: number): { text: string; cls: string } {
     switch (index) {
-        case 1: return { text: "Good AQI", cls: "badge-good" };
-        case 2: return { text: "Moderate AQI", cls: "badge-good" };
-        case 3: return { text: "Unhealthy (sensitive)", cls: "badge-warning" };
-        case 4: return { text: "Unhealthy AQI", cls: "badge-warning" };
-        case 5: return { text: "Very Unhealthy", cls: "badge-danger" };
-        default: return { text: "Hazardous AQI", cls: "badge-danger" };
+        case 1: return { text: "Bon IQA", cls: "badge-good" };
+        case 2: return { text: "IQA modéré", cls: "badge-good" };
+        case 3: return { text: "Mauvais (sensibles)", cls: "badge-warning" };
+        case 4: return { text: "IQA mauvais", cls: "badge-warning" };
+        case 5: return { text: "IQA très mauvais", cls: "badge-danger" };
+        default: return { text: "IQA dangereux", cls: "badge-danger" };
     }
 }
 
+const MOON_PHASE_FR: Record<string, string> = {
+    "New Moon": "Nouvelle lune",
+    "Waxing Crescent": "Premier croissant",
+    "First Quarter": "Premier quartier",
+    "Waxing Gibbous": "Gibbeuse croissante",
+    "Full Moon": "Pleine lune",
+    "Waning Gibbous": "Gibbeuse décroissante",
+    "Last Quarter": "Dernier quartier",
+    "Waning Crescent": "Dernier croissant",
+};
+
+function moonPhaseFr(phase: string): string {
+    return MOON_PHASE_FR[phase] ?? phase;
+}
+
+// WeatherAPI reports wind_dir with English compass letters (N/E/S/W); French
+// uses O for "Ouest" instead of W, everything else follows the same pattern.
+function windDirFr(dir: string): string {
+    return dir.replace(/W/g, "O");
+}
+
 function formatDayLabel(dateStr: string, index: number): string {
-    if (index === 0) return "Today";
+    if (index === 0) return "Aujourd'hui";
     const date = new Date(dateStr + "T00:00:00");
-    return date.toLocaleDateString("en-US", { weekday: "long" });
+    return date.toLocaleDateString("fr-FR", { weekday: "long" });
 }
 
 function buildSparklinePath(temps: number[], width: number, height: number): string {
@@ -278,7 +299,7 @@ function renderFavorites(): void {
     list.innerHTML = "";
 
     if (favorites.length === 0) {
-        list.innerHTML = `<div class="favorites-empty">No favorites yet. Save a city to find it here.</div>`;
+        list.innerHTML = `<div class="favorites-empty">Aucun favori pour l'instant. Enregistrez une ville pour la retrouver ici.</div>`;
         return;
     }
 
@@ -286,7 +307,7 @@ function renderFavorites(): void {
         const row = document.createElement("div");
         row.className = "favorite-row";
         const safeCity = escapeHtml(city);
-        row.innerHTML = `<span>${safeCity}</span><button class="remove-btn" aria-label="Remove ${safeCity}">✕</button>`;
+        row.innerHTML = `<span>${safeCity}</span><button class="remove-btn" aria-label="Supprimer ${safeCity}">✕</button>`;
 
         row.addEventListener("click", () => {
             location = city;
@@ -357,7 +378,7 @@ function render(data: WeatherResponse): void {
 
     currentTzId = data.location.tz_id;
     qs<HTMLDivElement>("tzId").textContent = data.location.tz_id;
-    const offsetPart = new Intl.DateTimeFormat("en", {
+    const offsetPart = new Intl.DateTimeFormat("fr", {
         timeZone: data.location.tz_id, timeZoneName: "shortOffset",
     }).formatToParts(new Date()).find((p) => p.type === "timeZoneName");
     qs<HTMLDivElement>("tzOffset").textContent = offsetPart?.value ?? "";
@@ -369,8 +390,8 @@ function render(data: WeatherResponse): void {
 
     const today = data.forecast.forecastday[0]!;
     qs<HTMLDivElement>("feelsLike").textContent =
-        `Feels like ${Math.round(data.current.feelslike_c)}° · H: ${Math.round(today.day.maxtemp_c)}° L: ${Math.round(today.day.mintemp_c)}°`;
-    qs<HTMLSpanElement>("rainBadge").innerHTML = `${cloudRainIcon()}<span>${today.day.daily_chance_of_rain}% rain today</span>`;
+        `Ressenti ${Math.round(data.current.feelslike_c)}° · Max : ${Math.round(today.day.maxtemp_c)}° Min : ${Math.round(today.day.mintemp_c)}°`;
+    qs<HTMLSpanElement>("rainBadge").innerHTML = `${cloudRainIcon()}<span>${today.day.daily_chance_of_rain} % de pluie aujourd'hui</span>`;
 
     const aqiBadge = qs<HTMLSpanElement>("aqiBadge");
     const usEpaIndex = data.current.air_quality?.["us-epa-index"];
@@ -382,15 +403,15 @@ function render(data: WeatherResponse): void {
         aqiBadge.className = "badge hidden";
     }
 
-    qs<HTMLSpanElement>("humidityIcon").innerHTML = `${dropletIcon()}<span>Humidity</span>`;
-    qs<HTMLDivElement>("humidityValue").textContent = `${data.current.humidity}% · ${humiditySub(data.current.humidity)}`;
-    qs<HTMLSpanElement>("rainChanceIcon").innerHTML = `${cloudRainIcon()}<span>Chance of rain</span>`;
-    qs<HTMLDivElement>("rainChanceValue").textContent = `${today.day.daily_chance_of_rain}%`;
-    qs<HTMLSpanElement>("windIcon").innerHTML = `${windIcon()}<span>Wind</span>`;
-    qs<HTMLDivElement>("windValue").textContent = `${Math.round(data.current.wind_kph)} km/h · ${data.current.wind_dir}`;
-    qs<HTMLSpanElement>("uvIcon").innerHTML = `${sunIcon()}<span>UV Index</span>`;
+    qs<HTMLSpanElement>("humidityIcon").innerHTML = `${dropletIcon()}<span>Humidité</span>`;
+    qs<HTMLDivElement>("humidityValue").textContent = `${data.current.humidity} % · ${humiditySub(data.current.humidity)}`;
+    qs<HTMLSpanElement>("rainChanceIcon").innerHTML = `${cloudRainIcon()}<span>Risque de pluie</span>`;
+    qs<HTMLDivElement>("rainChanceValue").textContent = `${today.day.daily_chance_of_rain} %`;
+    qs<HTMLSpanElement>("windIcon").innerHTML = `${windIcon()}<span>Vent</span>`;
+    qs<HTMLDivElement>("windValue").textContent = `${Math.round(data.current.wind_kph)} km/h · ${windDirFr(data.current.wind_dir)}`;
+    qs<HTMLSpanElement>("uvIcon").innerHTML = `${sunIcon()}<span>Indice UV</span>`;
     qs<HTMLDivElement>("uvValue").textContent = `${data.current.uv} · ${uvSub(data.current.uv)}`;
-    qs<HTMLSpanElement>("visIcon").innerHTML = `${eyeIcon()}<span>Visibility</span>`;
+    qs<HTMLSpanElement>("visIcon").innerHTML = `${eyeIcon()}<span>Visibilité</span>`;
     qs<HTMLDivElement>("visValue").textContent = `${data.current.vis_km} km · ${visSub(data.current.vis_km)}`;
 
     renderHourly(data.forecast.forecastday);
@@ -405,8 +426,8 @@ function render(data: WeatherResponse): void {
     qs<HTMLSpanElement>("sunrise").textContent = sunRise;
     qs<HTMLSpanElement>("sunsetIcon").innerHTML = sunsetIcon();
     qs<HTMLSpanElement>("sunset").textContent = sunSet;
-    qs<HTMLSpanElement>("moonIconLabel").innerHTML = `${moonIcon()}<span>Moon</span>`;
-    qs<HTMLSpanElement>("moonPhase").textContent = `${today.astro.moon_phase} · ${today.astro.moon_illumination}%`;
+    qs<HTMLSpanElement>("moonIconLabel").innerHTML = `${moonIcon()}<span>Lune</span>`;
+    qs<HTMLSpanElement>("moonPhase").textContent = `${moonPhaseFr(today.astro.moon_phase)} · ${today.astro.moon_illumination} %`;
 
     const alertBanner = qs<HTMLElement>("alertBanner");
     if (data.alerts?.alert?.length) {
@@ -419,7 +440,7 @@ function render(data: WeatherResponse): void {
 
     applyBackground(code, isDay);
     void applyBackgroundPhoto(code, isDay, data);
-    qs<HTMLDivElement>("sideMenuCurrent").textContent = `Viewing: ${data.location.name}, ${data.location.country}`;
+    qs<HTMLDivElement>("sideMenuCurrent").textContent = `Ville actuelle : ${data.location.name}, ${data.location.country}`;
 }
 
 let getDataRequestId = 0;
@@ -435,7 +456,7 @@ async function getData(): Promise<void> {
     } catch (err) {
         if (requestId !== getDataRequestId) return;
         const alertBanner = qs<HTMLElement>("alertBanner");
-        alertBanner.innerHTML = `${warningIcon()}<span>Unable to load weather data.</span>`;
+        alertBanner.innerHTML = `${warningIcon()}<span>Impossible de charger les données météo.</span>`;
         alertBanner.classList.add("alert");
         console.error(err);
     }

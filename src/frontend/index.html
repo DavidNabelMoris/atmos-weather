@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atmos Weather</title>
-    <meta name="description" content="Current conditions, hourly and 3-day forecast, sunrise/sunset and moon phase for any city — fast, free, no account needed.">
+    <meta name="description" content="Conditions actuelles, prévisions horaires et sur 3 jours, lever/coucher du soleil et phase de la lune pour n'importe quelle ville — rapide, gratuit, sans compte.">
     <link rel="canonical" href="https://atmos-weather.vercel.app/">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Atmos Weather">
-    <meta property="og:description" content="Current conditions, hourly and 3-day forecast, sunrise/sunset and moon phase for any city.">
+    <meta property="og:description" content="Conditions actuelles, prévisions horaires et sur 3 jours, lever/coucher du soleil et phase de la lune pour n'importe quelle ville.">
     <meta property="og:url" content="https://atmos-weather.vercel.app/">
+    <meta property="og:locale" content="fr_FR">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="./styles.css">
 </head>
@@ -35,12 +36,12 @@
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>
                 </svg>
-                <span id="locationText">Loading…</span>
+                <span id="locationText">Chargement…</span>
                 <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
             </button>
-            <button class="icon-btn" id="favoriteBtn" aria-label="Favorites">
+            <button class="icon-btn" id="favoriteBtn" aria-label="Favoris">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.7l5.9-.9z"/>
                 </svg>
@@ -48,29 +49,29 @@
 
             <div class="search-panel glass-2 hidden" id="searchPanel">
                 <div class="search-input-wrap">
-                    <input id="citySearch" class="body-small" placeholder="Search city…" autocomplete="off">
+                    <input id="citySearch" class="body-small" placeholder="Rechercher une ville…" autocomplete="off">
                     <div class="search-suggestions hidden" id="searchSuggestions"></div>
                 </div>
-                <button id="citySearchBtn" class="btn btn-primary btn-sm">Go</button>
+                <button id="citySearchBtn" class="btn btn-primary btn-sm">Rechercher</button>
             </div>
         </header>
 
         <div class="side-menu-backdrop" id="sideMenuBackdrop"></div>
         <aside class="side-menu glass-3" id="sideMenu">
             <div class="side-menu-header">
-                <h3 class="h3">Favorites</h3>
-                <button class="icon-btn" id="sideMenuCloseBtn" aria-label="Close menu">
+                <h3 class="h3">Favoris</h3>
+                <button class="icon-btn" id="sideMenuCloseBtn" aria-label="Fermer le menu">
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/>
                     </svg>
                 </button>
             </div>
             <div class="side-menu-current body-small" id="sideMenuCurrent">—</div>
-            <button class="btn btn-primary" id="saveFavoriteBtn">☆ Save this city</button>
+            <button class="btn btn-primary" id="saveFavoriteBtn">☆ Enregistrer cette ville</button>
             <div class="favorites-list" id="favoritesList"></div>
             <div style="display: flex; gap: var(--space-3);">
-                <a href="./privacy.html" class="caption" style="color: var(--text-tertiary);">Privacy Policy</a>
-                <a href="./terms.html" class="caption" style="color: var(--text-tertiary);">Terms</a>
+                <a href="./privacy.html" class="caption" style="color: var(--text-tertiary);">Politique de confidentialité</a>
+                <a href="./terms.html" class="caption" style="color: var(--text-tertiary);">Conditions d'utilisation</a>
             </div>
         </aside>
 
@@ -118,39 +119,39 @@
                 </div>
                 <div class="conditions-list">
                     <div class="condition-row">
-                        <span class="label" id="humidityIcon">Humidity</span>
+                        <span class="label" id="humidityIcon">Humidité</span>
                         <span class="value" id="humidityValue">--%</span>
                     </div>
                     <div class="condition-row">
-                        <span class="label" id="rainChanceIcon">Chance of rain</span>
+                        <span class="label" id="rainChanceIcon">Risque de pluie</span>
                         <span class="value" id="rainChanceValue">--%</span>
                     </div>
                     <div class="condition-row">
-                        <span class="label" id="windIcon">Wind</span>
+                        <span class="label" id="windIcon">Vent</span>
                         <span class="value" id="windValue">-- km/h</span>
                     </div>
                     <div class="condition-row">
-                        <span class="label" id="uvIcon">UV Index</span>
+                        <span class="label" id="uvIcon">Indice UV</span>
                         <span class="value" id="uvValue">--</span>
                     </div>
                     <div class="condition-row">
-                        <span class="label" id="visIcon">Visibility</span>
+                        <span class="label" id="visIcon">Visibilité</span>
                         <span class="value" id="visValue">-- km</span>
                     </div>
                 </div>
             </div>
 
             <div class="card glass-2 forecast-card">
-                <h3 class="h3">3-day forecast</h3>
+                <h3 class="h3">Prévisions sur 3 jours</h3>
                 <div class="forecast-list" id="forecastList"></div>
             </div>
 
             <div class="card glass-2 sunmoon-card">
-                <h3 class="h3">Sun &amp; Moon</h3>
-                <div class="sun-row"><span id="sunriseIcon"></span><span>Sunrise</span><span id="sunrise">—</span></div>
-                <div class="sun-row"><span id="sunsetIcon"></span><span>Sunset</span><span id="sunset">—</span></div>
+                <h3 class="h3">Soleil et Lune</h3>
+                <div class="sun-row"><span id="sunriseIcon"></span><span>Lever du soleil</span><span id="sunrise">—</span></div>
+                <div class="sun-row"><span id="sunsetIcon"></span><span>Coucher du soleil</span><span id="sunset">—</span></div>
                 <div class="moon-row">
-                    <span class="moon-label" id="moonIconLabel">Moon</span>
+                    <span class="moon-label" id="moonIconLabel">Lune</span>
                     <span id="moonPhase" class="body-small">—</span>
                 </div>
             </div>

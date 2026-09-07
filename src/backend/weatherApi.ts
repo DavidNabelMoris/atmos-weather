@@ -8,7 +8,7 @@ export class WeatherApiError extends Error {
 }
 
 export async function fetchForecast(apiKey: string, location: string): Promise<unknown> {
-    const url = `${WEATHER_API_BASE}/forecast.json?key=${apiKey}&q=${encodeURIComponent(location)}&days=3&aqi=yes&alerts=yes`;
+    const url = `${WEATHER_API_BASE}/forecast.json?key=${apiKey}&q=${encodeURIComponent(location)}&days=3&aqi=yes&alerts=yes&lang=fr`;
     const res = await fetch(url);
     if (!res.ok) {
         throw new WeatherApiError(res.status, `Weather API error: ${res.status}`);
