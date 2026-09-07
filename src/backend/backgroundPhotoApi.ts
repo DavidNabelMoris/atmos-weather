@@ -39,34 +39,42 @@ export function isKnownBackgroundCategory(category: string): boolean {
 interface PixabayHit {
     webformatURL: string;
     largeImageURL: string;
+    imageWidth: number;
+    imageHeight: number;
 }
 
 interface PixabayResponse {
     hits: PixabayHit[];
 }
 
-export async function fetchBackgroundPhotoUrl(apiKey: string, category: string): Promise<string | null> {
+// Pixabay has no aspect-ratio filter, so we pull a wide pool of candidates
+// (both orientations) and pick whichever hit's actual photo dimensions are
+// closest to the caller's viewport ratio. That minimizes how much
+// background-size:cover has to crop, without ever leaving uncovered gaps.
+export async function fetchBackgroundPhotoUrl(
+    apiKey: string,
+    category: string,
+    targetRatio: number,
+): Promise<string | null> {
     const query = WEATHER_QUERIES[category];
-    let result: string | null;
+    if (!query) return null;
 
-    if (query) {
-        const txt = encodeURIComponent(query);
-        const url = `${PIXABAY_API_BASE}/?key=${apiKey}&q=${txt}&image_type=photo&orientation=horizontal&safesearch=true&per_page=3`;
-        const res = await fetch(url);
+    const txt = encodeURIComponent(query);
+    const url = `${PIXABAY_API_BASE}/?key=${apiKey}&q=${txt}&image_type=photo&orientation=all&safesearch=true&per_page=40`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
 
-        if (res.ok) {
-            const data = (await res.json()) as PixabayResponse;
+    const data = (await res.json()) as PixabayResponse;
+    if (!data.hits || data.hits.length === 0) return null;
 
-            if (data.hits && data.hits.length > 0 &&  data.hits[0]) {
-                result = data.hits[0].largeImageURL;
-            } else {
-                result = null;
-            }
-        } else {
-           result = null;
+    let best = data.hits[0]!;
+    let bestDiff = Math.abs(best.imageWidth / best.imageHeight - targetRatio);
+    for (const hit of data.hits) {
+        const diff = Math.abs(hit.imageWidth / hit.imageHeight - targetRatio);
+        if (diff < bestDiff) {
+            best = hit;
+            bestDiff = diff;
         }
-    } else {
-        result = null;
     }
-    return result ;
+    return best.largeImageURL;
 }

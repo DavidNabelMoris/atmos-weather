@@ -57,6 +57,10 @@
 html, body {
   margin: 0;
   height: 100%;
+  /* .app is the scroll container, not the document — this keeps body locked
+     to exactly the viewport size, so its cover background can never fall
+     short and expose a gap once content is taller than one screen. */
+  overflow: hidden;
   font-family: var(--font-sans);
   color: var(--text-primary);
   background: var(--background-page);
@@ -67,10 +71,18 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   transition: background var(--dur-atmospheric) var(--ease-out);
+}
+
+/* The scroll container (not body) owns scrolling and centering, sized to the
+   full viewport, so content that intentionally pops outside .app's own box
+   (e.g. the wide-screen search panel) isn't clipped by a narrower ancestor. */
+.scroll-container {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
   display: flex;
   align-items: safe center;
   justify-content: center;
-  overflow: auto;
 }
 
 /* Weather background states */

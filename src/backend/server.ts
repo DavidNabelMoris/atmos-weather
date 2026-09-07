@@ -94,8 +94,10 @@ app.get("/api/background-photo", async (req: Request, res: Response) => {
         return;
     }
     const category = cleanQueryParam(req.query["category"]);
+    const parsedRatio = Number(req.query["ratio"]);
+    const targetRatio = Number.isFinite(parsedRatio) ? Math.min(Math.max(parsedRatio, 0.2), 5) : 16 / 9;
     try {
-        const url = await fetchBackgroundPhotoUrl(PIXABAY_API_KEY, category);
+        const url = await fetchBackgroundPhotoUrl(PIXABAY_API_KEY, category, targetRatio);
         res.json({ url });
     } catch (err) {
         console.error(err);
